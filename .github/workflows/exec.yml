@@ -52,8 +52,6 @@ jobs:
           BUMP_MODE: ${{ inputs.bump }}
           PUBLISH_RELEASE: ${{ inputs.release }}
           PRERELEASE: ${{ inputs.prerelease }}
-          HAS_RELEASE_KEY: ${{ secrets.SNAPVEIL_KEYSTORE_BASE64 != '' }}
-          HAS_RELEASE_PASSWORD: ${{ secrets.SNAPVEIL_KEYSTORE_PASSWORD != '' }}
         run: |
           set -euo pipefail
           case "$BUMP_MODE" in none|patch|minor|major) ;; *) echo 'Invalid bump choice' >&2; exit 2;; esac
@@ -63,10 +61,6 @@ jobs:
           fi
           if [[ ( "$BUMP_MODE" != 'none' || "$PUBLISH_RELEASE" == 'true' ) && "$GITHUB_REF" != 'refs/heads/main' ]]; then
             echo '::error::Version updates and releases must run from main'
-            exit 1
-          fi
-          if [[ "$PUBLISH_RELEASE" == 'true' && ( "$HAS_RELEASE_KEY" != 'true' || "$HAS_RELEASE_PASSWORD" != 'true' ) ]]; then
-            echo '::error::Configure SNAPVEIL_KEYSTORE_BASE64 and SNAPVEIL_KEYSTORE_PASSWORD repository secrets before releasing.'
             exit 1
           fi
       - uses: actions/setup-java@v5
@@ -99,29 +93,8 @@ jobs:
           python3 tools/bump.py "$BUMP_MODE"
           git add kam.toml src/snapveil/module.prop
           git diff --cached --check
-      - name: Require persistent APK signing key for releases
-        if: github.event_name == 'workflow_dispatch' && inputs.release
-        shell: bash
-        env:
-          SNAPVEIL_KEYSTORE_BASE64: ${{ secrets.SNAPVEIL_KEYSTORE_BASE64 }}
-          SNAPVEIL_KEYSTORE_PASSWORD: ${{ secrets.SNAPVEIL_KEYSTORE_PASSWORD }}
-        run: |
-          set -euo pipefail
-          if [[ -z "$SNAPVEIL_KEYSTORE_BASE64" || -z "$SNAPVEIL_KEYSTORE_PASSWORD" ]]; then
-            echo '::error::Configure SNAPVEIL_KEYSTORE_BASE64 and SNAPVEIL_KEYSTORE_PASSWORD repository secrets before releasing.'
-            exit 1
-          fi
-          umask 077
-          mkdir -p .local/signing
-          printf '%s' "$SNAPVEIL_KEYSTORE_BASE64" | base64 --decode > .local/signing/snapveil-release.p12
-          test -s .local/signing/snapveil-release.p12
-          keytool -list -storetype PKCS12 -keystore .local/signing/snapveil-release.p12 \
-            -storepass:env SNAPVEIL_KEYSTORE_PASSWORD -alias snapveil > /dev/null
-          echo "SNAPVEIL_KEYSTORE=$PWD/.local/signing/snapveil-release.p12" >> "$GITHUB_ENV"
       - name: Build and inspect
         shell: bash
-        env:
-          SNAPVEIL_KEYSTORE_PASSWORD: ${{ (github.event_name == 'workflow_dispatch' && inputs.release) && secrets.SNAPVEIL_KEYSTORE_PASSWORD || 'android' }}
         run: |
           set -euo pipefail
           kam export prop src/snapveil/module.prop
@@ -130,8 +103,13 @@ jobs:
           kam check --fail-on-error
           sh android/tests/run.sh
           python3 -m unittest discover -s tests -v
+          # The module ZIP needs no signature. build_apk.py auto-signs the
+          # required LSPosed companion APK with a local development key.
           kam build --release
           python3 tools/verify.py
+          if [[ "${{ github.event_name }}" == workflow_dispatch && "${{ inputs.release }}" == true ]]; then
+            echo '::warning::The module ZIP is unsigned. The companion APK uses a new development certificate on each runner; Android may require uninstalling the old companion app before upgrading.'
+          fi
           cp src/snapveil/app/snapveil.apk dist/snapveil.apk
           (cd dist && sha256sum snapveil-*.zip snapveil.apk > SHA256SUMS)
           if [[ "${{ github.event_name }}" == 'workflow_dispatch' && '${{ inputs.bump }}' != 'none' ]]; then

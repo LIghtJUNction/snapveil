@@ -68,5 +68,6 @@ APK 含项目开发签名。维护签名备份与公开源码分开保存；ZIP 
 
 - 新增 `workflow_dispatch` 的 `bump=none/patch/minor/major`、`release`、`prerelease`。普通 push 和 PR 不会修改版本或发布。
 - 使用临时裸 Git 仓库和模拟的 `gh` 命令，测试版本提交、tag、预发布、重复发布阻止、版本不符、校验值错误、非 `main` 分支等路径。
-- 发布版本通过真实构建和校验后，才允许写入 `main` 并上传 Release。发布时必须使用仓库提供的持久 APK 签名文件，禁止使用随机开发签名。
-- 以上测试不会访问真实 GitHub Release 写入接口。实际创建 Release 需要持有仓库权限并配置签名 Secrets 后通过手动工作流验证。
+- 发布版本通过真实构建和校验后，才允许写入 `main` 并上传 Release；模块 ZIP 不要求签名。
+- CI 使用临时开发密钥为必需的 LSPosed 配套 APK 自动签名，无需仓库签名 Secrets。不同 CI 运行的 APK 可能无法覆盖升级，须在设备端手动处理旧配套应用。
+- 以上测试不会访问真实 GitHub Release 写入接口。实际创建 Release 仍需持有仓库写入权限，并经手动工作流验证。

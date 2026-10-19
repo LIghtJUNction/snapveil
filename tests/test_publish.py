@@ -16,6 +16,18 @@ def git(*args: str, cwd: Path) -> str:
     return subprocess.check_output(["git", *args], cwd=cwd, text=True, stderr=subprocess.STDOUT).strip()
 
 
+class BuildWorkflowConfigurationTests(unittest.TestCase):
+    def test_manual_release_does_not_require_keystore_secrets(self):
+        workflow = (ROOT / '.github/workflows/exec.yml').read_text()
+        self.assertNotIn('secrets.SNAPVEIL_KEYSTORE_BASE64', workflow)
+        self.assertNotIn('secrets.SNAPVEIL_KEYSTORE_PASSWORD', workflow)
+        self.assertNotIn('Require persistent APK signing key', workflow)
+        self.assertIn('kam build --release', workflow)
+        self.assertIn('if-no-files-found: error', workflow)
+        build_script = (ROOT / 'tools/build_apk.py').read_text()
+        self.assertIn('run(sdk_tools / "apksigner", "sign"', build_script)
+
+
 class ReleaseWorkflowTests(unittest.TestCase):
     def setUp(self):
         self.directory = tempfile.TemporaryDirectory(prefix="snapveil-release-")
