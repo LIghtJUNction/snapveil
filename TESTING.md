@@ -63,3 +63,10 @@ Kam 的五项提示是服务、按钮、卸载的执行阶段，以及两处 `se
 | `snapveil.apk` | 20,947 字节 | `8ad541b7a6da705d53ea047670f94cdb4ec98e3c8909484dca9ebd41ccad2ecf` |
 
 APK 含项目开发签名。维护签名备份与公开源码分开保存；ZIP 的 SHA256 用于确认收到的文件内容。
+
+## 2026-10-19 — GitHub Actions 发布流程补充检查
+
+- 新增 `workflow_dispatch` 的 `bump=none/patch/minor/major`、`release`、`prerelease`。普通 push 和 PR 不会修改版本或发布。
+- 使用临时裸 Git 仓库和模拟的 `gh` 命令，测试版本提交、tag、预发布、重复发布阻止、版本不符、校验值错误、非 `main` 分支等路径。
+- 发布版本通过真实构建和校验后，才允许写入 `main` 并上传 Release。发布时必须使用仓库提供的持久 APK 签名文件，禁止使用随机开发签名。
+- 以上测试不会访问真实 GitHub Release 写入接口。实际创建 Release 需要持有仓库权限并配置签名 Secrets 后通过手动工作流验证。

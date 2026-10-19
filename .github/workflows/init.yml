@@ -40,6 +40,6 @@ jobs:
           kam check --fail-on-error
           kam export prop src/snapveil/module.prop
           git diff --exit-code -- src/snapveil/module.prop
-          shellcheck -x -P . src/snapveil/*.sh src/snapveil/cli src/snapveil/lib/common.sh src/snapveil/META-INF/com/google/android/update-binary hooks/*/*.sh
+          shellcheck -x -P . src/snapveil/*.sh src/snapveil/cli src/snapveil/lib/common.sh src/snapveil/META-INF/com/google/android/update-binary hooks/*/*.sh tools/publish.sh
           sh android/tests/run.sh
           python3 -m unittest discover -s tests -v

@@ -2,7 +2,7 @@
 
 **拦截 Android 的标准截屏通知，并提供不写入公共相册的私有截屏命令。**
 
-版本：`v0.1.0`，`versionCode=1`。使用 [Kam](https://github.com/MemDeco-WG/Kam) 构建。
+当前版本以 [`kam.toml`](kam.toml) 的 `[prop]` 为准；使用 [Kam](https://github.com/MemDeco-WG/Kam) 构建。
 源码仓库：[LIghtJUNction/snapveil](https://github.com/LIghtJUNction/snapveil)。
 
 这是已完成主机测试的首版，尚未做 Android 真机验证。不能保证所有软件、所有截屏检测方式都失效。
@@ -179,9 +179,31 @@ export SNAPVEIL_KEY_ALIAS=snapveil
 kam build --release
 ```
 
-`init.yml` 与 `exec.yml` 从真实 `kam workflow install` 生成后按本项目调整。
-它们校验、测试并上传开发构建，不自动发布 GitHub Release。
-CI 每次使用临时开发签名，不能用于覆盖安装本交付的 APK；发布升级包应使用保留的维护签名。
+`init.yml` 与 `exec.yml` 使用 Kam 检查和构建，普通 push / PR 只进行测试，不自动更改版本或创建发布。
+
+### GitHub Actions 手动版本与发布
+
+从 **Actions → Build SnapVeil → Run workflow** 选择 `main`，然后设置：
+
+| 参数 | 选项 | 效果 |
+| --- | --- | --- |
+| `bump` | `none`（默认）、`patch`、`minor`、`major` | 仅在不是 `none` 时调用 `tools/bump.py`，同步修改 `kam.toml` 与 `module.prop`；构建成功后提交到 `main` |
+| `release` | `false`（默认）或 `true` | `true` 时发布当前或新版本的 GitHub Release，上传 ZIP、APK 与 SHA256SUMS |
+| `prerelease` | `false`（默认）或 `true` | 只在 `release=true` 时可设为 `true`，用于测试版 |
+
+常见操作：`patch + release=true` 发布修订版；`none + release=true` 发布已定版本；`minor + release=false` 只提交版本变更。`none + false` 只构建，适合检查。
+手动更改版本或发布必须使用 `main`，PR 和常规 push 不会发布。构建、单元测试与包校验通过之后才提交 bump 并发布；已存在的 Release 不会被覆盖；已有标签指向其他提交时会中止。
+
+**发布前必须配置两个仓库 Actions Secrets**：
+
+- `SNAPVEIL_KEYSTORE_BASE64`：保留的 `snapveil.p12`（与之前 APK 相同签名），对文件执行 `base64 -w0 snapveil.p12` 所得的单行内容。macOS 可用 `base64 < snapveil.p12 | tr -d '\n'`。
+- `SNAPVEIL_KEYSTORE_PASSWORD`：该 PKCS#12 签名文件的密码。签名别名固定为 `snapveil`。
+
+在仓库 **Settings → Secrets and variables → Actions** 添加这两个 Secret。工作流会用 `keytool` 检查提供的签名文件；任何 Secret 缺失会阻止发布，不会意外拿随机生成的开发签名发布。
+**不要将私钥或 Base64 私钥文本提交到 Git、Issue、Actions 日志或公开 Release。**
+发布 ZIP 内的 APK 与单独提供的 APK 使用同一签名。若签名与旧版不同，Android 无法直接覆盖更新原有配套应用。只有构建成功并持有仓库写入权限时，工作流才可以创建 tag 和 Release。
+
+正式发布使用不可覆盖版本：`vX.Y.Z` 标签、同名 ZIP 和 Release，之后应通过新版本修复问题，不能重用旧版本号。
 
 如要收录到 KernelSU 模块仓库，应使用 `snapveil` 作为仓库名，保持版本码递增，并按[模块仓库示例](https://modules.kernelsu.org/en/modules/example_module_demo/)启用不可变发布。
 当前没有设置尚不存在的下载地址或自动更新地址，也未声明已完成仓库上架。
