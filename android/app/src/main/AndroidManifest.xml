@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="best.lmm.snapveil">
+
+    <uses-sdk android:minSdkVersion="34" android:targetSdkVersion="35" />
+    <uses-permission android:name="android.permission.DETECT_SCREEN_CAPTURE" />
+
+    <application
+        android:allowBackup="false"
+        android:label="SnapVeil"
+        android:supportsRtl="true"
+        android:theme="@android:style/Theme.Material.Light.NoActionBar">
+        <activity
+            android:name=".MainActivity"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <meta-data android:name="xposedmodule" android:value="true" />
+        <meta-data android:name="xposedminversion" android:value="82" />
+        <meta-data
+            android:name="xposeddescription"
+            android:value="阻止 Android 标准截屏通知。需要 Root 模块、本应用和 LSPosed 系统框架作用域。" />
+        <meta-data android:name="xposedscope" android:resource="@array/xposed_scope" />
+    </application>
+</manifest>

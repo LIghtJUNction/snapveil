@@ -1,0 +1,17 @@
+#!/sbin/sh
+# Magisk's standard module installer; KernelSU and APatch use their own installers.
+umask 022
+OUTFD=$2
+ZIPFILE=$3
+export OUTFD ZIPFILE
+if [ ! -f /data/adb/magisk/util_functions.sh ]; then
+    printf '%s\n' 'Install from Magisk, KernelSU, or APatch Manager while Android is running.' >&2
+    exit 1
+fi
+# shellcheck disable=SC1091
+. /data/adb/magisk/util_functions.sh
+[ "${MAGISK_VER_CODE:-0}" -ge 27008 ] || {
+    printf '%s\n' 'Magisk 27008 or later is required.' >&2
+    exit 1
+}
+install_module

@@ -1,0 +1,7 @@
+id=snapveil
+name=SnapVeil
+version=v0.1.0
+versionCode=1
+author=LIghtJUNction
+description=Block standard Android screenshot callbacks with LSPosed; include private screenshot capture.
+updateJson=

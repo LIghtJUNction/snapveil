@@ -1,0 +1,56 @@
+#!/system/bin/sh
+set -eu
+MODDIR=$(CDPATH='' cd -- "$(dirname -- "$0")" && pwd -P)
+# shellcheck source=src/snapveil/lib/common.sh
+. "$MODDIR/lib/common.sh"
+umask 077
+sv_root
+case "${1:-status}" in
+    status)
+        sv_status
+        ;;
+    enable)
+        if [ -e "$MODDIR/disable" ] || [ -e "$MODDIR/remove" ]; then
+            printf '%s\n' 'Enable the module in your root manager and reboot first.' >&2
+            exit 1
+        fi
+        sv_private_dir "$MODDIR/state"
+        rm -f "$MODDIR/state/paused"
+        sv_set_active 1
+        printf '%s\n' 'Activation requested. The System Framework hook must be loaded in LSPosed.'
+        ;;
+    disable)
+        sv_set_active 0
+        sv_private_dir "$MODDIR/state"
+        [ ! -L "$MODDIR/state/paused" ] || {
+            printf '%s\n' 'Refusing a symbolic-link pause marker. Protection is off for this boot.' >&2
+            exit 1
+        }
+        if [ ! -e "$MODDIR/state/paused" ]; then
+            (set -C; : > "$MODDIR/state/paused")
+        fi
+        printf '%s\n' 'Protection is paused, including after reboot. Use cli enable to resume.'
+        ;;
+    install-app)
+        sv_install_app
+        ;;
+    capture)
+        [ "$#" -le 2 ] || exit 2
+        sv_capture "${2:-0}"
+        ;;
+    list)
+        [ ! -L "$MODDIR/captures" ] || exit 1
+        for sv_file in "$MODDIR/captures/"*.png; do
+            [ ! -L "$sv_file" ] && [ -f "$sv_file" ] && printf '%s\n' "${sv_file##*/}"
+        done
+        exit 0
+        ;;
+    export)
+        [ "$#" = 2 ] || exit 2
+        sv_export "$2"
+        ;;
+    *)
+        printf '%s\n' 'Usage: cli {status|enable|disable|install-app|capture [0..30]|list|export BASENAME}' >&2
+        exit 2
+        ;;
+esac

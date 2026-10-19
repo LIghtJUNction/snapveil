@@ -1,0 +1,38 @@
+[prop]
+id = "snapveil"
+name = "SnapVeil"
+version = "v0.1.0"
+versionCode = 1
+author = "LIghtJUNction"
+description = "Block standard Android screenshot callbacks with LSPosed; include private screenshot capture."
+updateJson = ""
+
+[kam]
+module_type = "kam"
+
+[kam.build]
+source_dir = "src/snapveil"
+target_dir = "dist"
+output_file = "snapveil-{{version}}"
+hooks_dir = "hooks"
+exclude = [".git", ".git/**", "state/**", "captures/**", "*.tmp"]
+
+[mmrl.repo]
+repository = "https://github.com/LIghtJUNction/snapveil"
+homepage = "https://github.com/LIghtJUNction/snapveil"
+issues = "https://github.com/LIghtJUNction/snapveil/issues"
+license = "MIT"
+license_file = "LICENSE"
+readme_file = "README.md"
+changelog_file = "CHANGELOG.md"
+categories = ["privacy"]
+keywords = ["screenshot", "privacy", "lsposed", "kam"]
+min_api = 34
+verified = false
+
+[mmrl.repo.note]
+title = "Requires LSPosed"
+message = "Enable SnapVeil for System Framework. Official screenshot callbacks only; device testing is required."
+
+[dev]
+logs = ["/data/adb/modules/snapveil/state/service.log"]

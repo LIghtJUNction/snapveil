@@ -1,0 +1,43 @@
+{
+  "kam": {
+    "source": "https://github.com/MemDeco-WG/Kam",
+    "commit": "3835842ca90cefc621383e72e01078481122aa30",
+    "version": "0.6.14",
+    "rustc": "1.99.1 (58cf8f9c3 2026-10-13)",
+    "build_profile": {
+      "release": true,
+      "locked": true,
+      "opt-level": 1,
+      "lto": false,
+      "codegen-units": 16,
+      "debug": 0,
+      "strip": "symbols",
+      "incremental": false,
+      "jobs": 2
+    },
+    "binary_sha256": "eda1c62f4fcb60cabb0b1c65c2ae771613ea82cfc93db3f34d1bdfc22e073cc8",
+    "size_bytes": 25269056,
+    "build_passed": true
+  },
+  "android_sdk": {
+    "platform": 35,
+    "platform_archive": "https://dl.google.com/android/repository/platform-35_r02.zip",
+    "platform_sha1": "0bb560a90a7a2cbd0dd8348224d518b638fe7949",
+    "build_tools": "35.0.0",
+    "build_tools_archive": "https://dl.google.com/android/repository/build-tools_r35_linux.zip",
+    "build_tools_sha1": "2cfaa0bbb2336e9ec18ed3ecea84fa2e2af607bc"
+  },
+  "xposed_api": {
+    "version": 82,
+    "url": "https://api.xposed.info/de/robv/android/xposed/api/82/api-82.jar",
+    "sha256": "f48c635f1c7469fdec0e00ad2ea0b7a6b2f5b55065784a35b7ca3a84615e8e25"
+  },
+  "module": {
+    "id": "snapveil",
+    "version": "v0.1.0",
+    "versionCode": 1,
+    "device_tested": false,
+    "java_checks_passed": 38,
+    "python_tests_passed": 23
+  }
+}

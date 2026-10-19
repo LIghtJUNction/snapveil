@@ -1,0 +1,15 @@
+.cache/
+.local/
+build/
+dist/
+__pycache__/
+*.pyc
+src/snapveil/app/*.apk
+src/snapveil/app/*.sha256
+src/snapveil/LICENSE
+src/snapveil/state/
+src/snapveil/captures/
+.kam/
+*.p12
+*.jks
+*.keystore
