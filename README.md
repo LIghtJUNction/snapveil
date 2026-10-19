@@ -164,11 +164,11 @@ python3 tools/bump.py patch
 bump 会让 `versionCode` 加 1，并限制在 APK 可用范围内；普通构建不会自动涨版本。
 当前 Kam 0.6.14 的 `kam version` 会生成 13 位毫秒时间值，本项目使用自己的小脚本避免 APK 版本码溢出。
 
-### 签名和工作流
+### 模块 ZIP 与配套 APK
 
-默认在 `.local/signing/snapveil.p12` 生成项目专属开发签名，密码为 `android`，别名为 `snapveil`。
-私钥不进入 Git 或可刷入 ZIP。**保留这个文件，后续 APK 更新需要同一签名。**
-交付的维护包含单独的私钥备份；公开源码时不要公开维护包中的 `private/` 目录。
+**SnapVeil 的交付物是 Root 模块 ZIP，模块 ZIP 不需要签名。** 但模块需要一个 LSPosed 配套 Android APK；Android 不接受未签名 APK，`tools/build_apk.py` 会自动为它生成开发签名。无需手动签名模块，也无需为 GitHub Actions 设置签名密钥。
+
+本地构建默认在 `.local/signing/snapveil.p12` 创建开发签名（密码 `android`，别名 `snapveil`），同一工作目录可复用。私钥不会进入 Git 或模块 ZIP。如果需要 APK 直接覆盖安装旧版，就必须使用与旧版相同的签名。
 
 正式构建可指定自己的签名文件：
 
@@ -194,14 +194,11 @@ kam build --release
 常见操作：`patch + release=true` 发布修订版；`none + release=true` 发布已定版本；`minor + release=false` 只提交版本变更。`none + false` 只构建，适合检查。
 手动更改版本或发布必须使用 `main`，PR 和常规 push 不会发布。构建、单元测试与包校验通过之后才提交 bump 并发布；已存在的 Release 不会被覆盖；已有标签指向其他提交时会中止。
 
-**发布前必须配置两个仓库 Actions Secrets**：
+**GitHub Actions 发布无需签名 Secrets。** 构建时会自动生成一次性的 APK 开发签名，然后把 APK 放进无需签名的模块 ZIP。
 
-- `SNAPVEIL_KEYSTORE_BASE64`：保留的 `snapveil.p12`（与之前 APK 相同签名），对文件执行 `base64 -w0 snapveil.p12` 所得的单行内容。macOS 可用 `base64 < snapveil.p12 | tr -d '\n'`。
-- `SNAPVEIL_KEYSTORE_PASSWORD`：该 PKCS#12 签名文件的密码。签名别名固定为 `snapveil`。
+注意：不同 Actions 运行的 APK 签名通常不同。Android 不能直接覆盖安装签名不同的旧 APK。升级新构建时，如果出现 `INSTALL_FAILED_UPDATE_INCOMPATIBLE`，需要先卸载旧的 **SnapVeil 配套应用**，再重新安装模块 ZIP（或运行 `cli install-app`），然后重新检查 LSPosed 的作用域。卸载的是配套应用，不是 Root 模块；不要自动卸载用户应用以绕过签名检查。
 
-在仓库 **Settings → Secrets and variables → Actions** 添加这两个 Secret。工作流会用 `keytool` 检查提供的签名文件；任何 Secret 缺失会阻止发布，不会意外拿随机生成的开发签名发布。
-**不要将私钥或 Base64 私钥文本提交到 Git、Issue、Actions 日志或公开 Release。**
-发布 ZIP 内的 APK 与单独提供的 APK 使用同一签名。若签名与旧版不同，Android 无法直接覆盖更新原有配套应用。只有构建成功并持有仓库写入权限时，工作流才可以创建 tag 和 Release。
+本地手工构建可以使用固定的 APK 签名来支持无缝升级，但 GitHub Actions 不要求或读取仓库签名 Secret。构建验证通过且工作流持有仓库写入权限时，才允许创建 tag 和 Release。
 
 正式发布使用不可覆盖版本：`vX.Y.Z` 标签、同名 ZIP 和 Release，之后应通过新版本修复问题，不能重用旧版本号。
 
