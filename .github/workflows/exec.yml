@@ -30,6 +30,10 @@ jobs:
           cache-targets: cargo,kam
           install-commitizen: 'false'
           warn-private-key: 'false'
+      - name: Set up Android SDK tools
+        uses: android-actions/setup-android@v3
+        with:
+          packages: ''
       - name: Prepare Android SDK
         shell: bash
         run: |
