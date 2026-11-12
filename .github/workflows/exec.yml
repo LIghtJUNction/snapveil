@@ -44,7 +44,7 @@ jobs:
     outputs:
       version: ${{ steps.version.outputs.version }}
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Validate manual release request
         if: github.event_name == 'workflow_dispatch'
         shell: bash
@@ -63,7 +63,7 @@ jobs:
             echo '::error::Version updates and releases must run from main'
             exit 1
           fi
-      - uses: actions/setup-java@v5
+      - uses: actions/setup-java@77dd5b2ce225ea11469928ac317850245a74ae78 # v6.2.0
         with:
           distribution: temurin
           java-version: '17'
@@ -124,7 +124,7 @@ jobs:
           version="$(python3 -c 'import tomllib; print(tomllib.load(open("kam.toml", "rb"))["prop"]["version"])')"
           echo "version=$version" >> "$GITHUB_OUTPUT"
       - name: Upload verified build
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: snapveil-build-${{ github.run_id }}
           path: dist/*
@@ -139,11 +139,11 @@ jobs:
     permissions:
       contents: write
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
       - name: Download verified build
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
           name: snapveil-build-${{ github.run_id }}
           path: dist
